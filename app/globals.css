@@ -1,0 +1,189 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 60 100% 98%;
+    --foreground: 240 10% 3.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary: 320 80% 76%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 180 70% 85%;
+    --secondary-foreground: 240 5.9% 10%;
+
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --accent: 270 80% 90%;
+    --accent-foreground: 240 5.9% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 320 80% 76%;
+    --primary-foreground: 240 5.9% 10%;
+
+    --secondary: 180 70% 85%;
+    --secondary-foreground: 240 5.9% 10%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent: 270 80% 90%;
+    --accent-foreground: 240 5.9% 10%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "M PLUS Rounded 1c", "Hiragino Kaku Gothic ProN", sans-serif;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "M PLUS Rounded 1c", sans-serif;
+    font-weight: 700;
+  }
+}
+
+.cute-shadow {
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.mbti-card {
+  transition: all 0.3s ease;
+}
+
+.mbti-card:hover {
+  transform: translateY(-5px);
+}
+
+.team-card {
+  border-radius: var(--radius);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-3px);
+}
+
+.team-card-1 {
+  border-color: #ffb6c1;
+  background-color: rgba(255, 182, 193, 0.1);
+}
+.team-card-2 {
+  border-color: #add8e6;
+  background-color: rgba(173, 216, 230, 0.1);
+}
+.team-card-3 {
+  border-color: #90ee90;
+  background-color: rgba(144, 238, 144, 0.1);
+}
+.team-card-4 {
+  border-color: #ffffe0;
+  background-color: rgba(255, 255, 224, 0.1);
+}
+.team-card-5 {
+  border-color: #e6e6fa;
+  background-color: rgba(230, 230, 250, 0.1);
+}
+.team-card-6 {
+  border-color: #fff0f5;
+  background-color: rgba(255, 240, 245, 0.1);
+}
+.team-card-7 {
+  border-color: #f0fff0;
+  background-color: rgba(240, 255, 240, 0.1);
+}
+.team-card-8 {
+  border-color: #f5f5dc;
+  background-color: rgba(245, 245, 220, 0.1);
+}
+
+/* Improved button and input styles */
+.btn-improved {
+  @apply px-4 py-2 rounded-lg transition-all duration-200 font-medium;
+  min-height: 2.5rem;
+  min-width: 6rem;
+}
+
+.input-improved {
+  @apply px-3 py-2 rounded-lg border border-input bg-background;
+  min-height: 2.5rem;
+}
+
+/* Better text wrapping */
+.text-wrap-anywhere {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Improved card padding */
+.card-padding {
+  @apply p-4 sm:p-6;
+}
+
+/* Responsive text sizing */
+.text-responsive {
+  @apply text-sm sm:text-base;
+}
+
+/* Improved scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #c5c5c5;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
