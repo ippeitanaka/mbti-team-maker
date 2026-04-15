@@ -1,36 +1,154 @@
-import type { Student, Team, TeamFormationStrategy } from "@/types"
+import type { Student, Team, TeamFormationConfig } from "@/types"
 import { calculateTeamCompatibility, getMBTIGroup } from "./mbti"
+import {
+  calculateGroupBalanceScore,
+  calculateSimilarityScore,
+  calculateTeamDiversityScore,
+  countConstraintPenalty,
+} from "./team-insights"
 
-// Distribute students into teams based on the selected strategy
-export function formTeams(students: Student[], numberOfTeams: number, strategy: TeamFormationStrategy): Team[] {
-  // Initialize empty teams
-  const teams: Team[] = Array.from({ length: numberOfTeams }, (_, i) => ({
+function createEmptyTeams(numberOfTeams: number) {
+  return Array.from({ length: numberOfTeams }, (_, i) => ({
     id: i + 1,
     name: `Team ${i + 1}`,
     members: [],
     compatibility: 0,
   }))
+}
+
+function shuffleStudents(students: Student[]) {
+  const shuffled = [...students]
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+
+  return shuffled
+}
+
+function cloneTeams(teams: Team[]) {
+  return teams.map((team) => ({
+    ...team,
+    members: [...team.members],
+  }))
+}
+
+function finalizeTeams(teams: Team[]) {
+  return teams.map((team) => ({
+    ...team,
+    compatibility: calculateTeamCompatibility(team.members),
+  }))
+}
+
+// Distribute students into teams based on the selected strategy
+export function formTeams(students: Student[], config: TeamFormationConfig): Team[] {
+  const teams = createEmptyTeams(config.numberOfTeams)
 
   // Make a copy of students to avoid modifying the original array
-  const remainingStudents = [...students]
+  const remainingStudents = shuffleStudents(students)
+
+  let initialTeams: Team[]
 
   // Different strategies for team formation
-  switch (strategy) {
+  switch (config.strategy) {
     case "compatibility":
-      return formTeamsByCompatibility(remainingStudents, teams)
+      initialTeams = formTeamsByCompatibility(remainingStudents, teams)
+      break
 
     case "balance":
-      return formTeamsByBalance(remainingStudents, teams)
+      initialTeams = formTeamsByBalance(remainingStudents, teams)
+      break
 
     case "diversity":
-      return formTeamsByDiversity(remainingStudents, teams)
+      initialTeams = formTeamsByDiversity(remainingStudents, teams)
+      break
 
     case "similarity":
-      return formTeamsBySimilarity(remainingStudents, teams)
+      initialTeams = formTeamsBySimilarity(remainingStudents, teams)
+      break
 
     default:
-      return formTeamsByCompatibility(remainingStudents, teams)
+      initialTeams = formTeamsByCompatibility(remainingStudents, teams)
   }
+
+  return optimizeTeams(initialTeams, config)
+}
+
+function evaluatePlan(teams: Team[], config: TeamFormationConfig) {
+  const completedTeams = finalizeTeams(teams)
+  const averageCompatibility =
+    completedTeams.reduce((total, team) => total + (team.compatibility || 0), 0) / completedTeams.length
+  const averageDiversity =
+    completedTeams.reduce((total, team) => total + calculateTeamDiversityScore(team), 0) / completedTeams.length
+  const averageBalance =
+    completedTeams.reduce((total, team) => total + calculateGroupBalanceScore(team), 0) / completedTeams.length
+  const averageSimilarity =
+    completedTeams.reduce((total, team) => total + calculateSimilarityScore(team), 0) / completedTeams.length
+  const sizes = completedTeams.map((team) => team.members.length)
+  const sizeSpread = Math.max(...sizes) - Math.min(...sizes)
+  const sizeScore = Math.max(0, 100 - sizeSpread * 25)
+
+  let score = 0
+
+  switch (config.strategy) {
+    case "compatibility":
+      score = averageCompatibility * 12 + averageBalance * 0.18 + averageDiversity * 0.1 + sizeScore * 0.1
+      break
+    case "balance":
+      score = averageBalance * 0.45 + sizeScore * 0.35 + averageCompatibility * 4 + averageDiversity * 0.08
+      break
+    case "diversity":
+      score = averageDiversity * 0.6 + averageBalance * 0.2 + averageCompatibility * 3 + sizeScore * 0.12
+      break
+    case "similarity":
+      score = averageSimilarity * 0.5 + averageCompatibility * 5 + sizeScore * 0.2 + averageBalance * 0.12
+      break
+  }
+
+  score -= countConstraintPenalty(completedTeams, config)
+
+  return score
+}
+
+function optimizeTeams(initialTeams: Team[], config: TeamFormationConfig) {
+  let bestTeams = cloneTeams(initialTeams)
+  let bestScore = evaluatePlan(bestTeams, config)
+  let improved = true
+  let guard = 0
+
+  while (improved && guard < 8) {
+    improved = false
+    guard += 1
+
+    for (let firstTeamIndex = 0; firstTeamIndex < bestTeams.length; firstTeamIndex++) {
+      for (let secondTeamIndex = firstTeamIndex + 1; secondTeamIndex < bestTeams.length; secondTeamIndex++) {
+        const firstTeam = bestTeams[firstTeamIndex]
+        const secondTeam = bestTeams[secondTeamIndex]
+
+        for (let firstMemberIndex = 0; firstMemberIndex < firstTeam.members.length; firstMemberIndex++) {
+          for (let secondMemberIndex = 0; secondMemberIndex < secondTeam.members.length; secondMemberIndex++) {
+            const candidateTeams = cloneTeams(bestTeams)
+            const swapA = candidateTeams[firstTeamIndex].members[firstMemberIndex]
+            const swapB = candidateTeams[secondTeamIndex].members[secondMemberIndex]
+
+            candidateTeams[firstTeamIndex].members[firstMemberIndex] = swapB
+            candidateTeams[secondTeamIndex].members[secondMemberIndex] = swapA
+
+            const candidateScore = evaluatePlan(candidateTeams, config)
+
+            if (candidateScore > bestScore) {
+              bestTeams = candidateTeams
+              bestScore = candidateScore
+              improved = true
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return finalizeTeams(bestTeams)
 }
 
 // Form teams optimizing for overall compatibility
@@ -43,11 +161,6 @@ function formTeamsByCompatibility(students: Student[], teams: Team[]): Team[] {
     const teamIndex = i % teams.length
     teams[teamIndex].members.push(sortedStudents[i])
   }
-
-  // Calculate compatibility for each team
-  teams.forEach((team) => {
-    team.compatibility = calculateTeamCompatibility(team.members)
-  })
 
   return teams
 }
@@ -71,11 +184,6 @@ function formTeamsByBalance(students: Student[], teams: Team[]): Team[] {
       const teamIndex = i % teams.length
       teams[teamIndex].members.push(groupStudents[i])
     }
-  })
-
-  // Calculate compatibility for each team
-  teams.forEach((team) => {
-    team.compatibility = calculateTeamCompatibility(team.members)
   })
 
   return teams
@@ -108,11 +216,6 @@ function formTeamsByDiversity(students: Student[], teams: Team[]): Team[] {
 
       teams[teamIndex].members.push(groupStudents[i])
     }
-  })
-
-  // Calculate compatibility for each team
-  teams.forEach((team) => {
-    team.compatibility = calculateTeamCompatibility(team.members)
   })
 
   return teams
@@ -157,11 +260,6 @@ function formTeamsBySimilarity(students: Student[], teams: Team[]): Team[] {
         teams[teamIndex].members.push(student)
       })
     }
-  })
-
-  // Calculate compatibility for each team
-  teams.forEach((team) => {
-    team.compatibility = calculateTeamCompatibility(team.members)
   })
 
   return teams

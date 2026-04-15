@@ -4,35 +4,35 @@
 
 @layer base {
   :root {
-    --background: 60 100% 98%;
-    --foreground: 240 10% 3.9%;
+    --background: 36 100% 98%;
+    --foreground: 222 28% 16%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222 28% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 222 28% 16%;
 
-    --primary: 320 80% 76%;
+    --primary: 347 94% 73%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 180 70% 85%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 160 55% 87%;
+    --secondary-foreground: 222 28% 16%;
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 35 60% 95%;
+    --muted-foreground: 220 10% 40%;
 
-    --accent: 270 80% 90%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 202 91% 90%;
+    --accent-foreground: 222 28% 16%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --border: 18 45% 88%;
+    --input: 18 45% 88%;
+    --ring: 347 94% 73%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
   }
 
   .dark {
@@ -73,6 +73,12 @@
   body {
     @apply bg-background text-foreground;
     font-family: "M PLUS Rounded 1c", "Hiragino Kaku Gothic ProN", sans-serif;
+    background-image:
+      radial-gradient(circle at top left, rgba(255, 176, 196, 0.35), transparent 32%),
+      radial-gradient(circle at top right, rgba(173, 234, 220, 0.38), transparent 28%),
+      radial-gradient(circle at bottom center, rgba(173, 216, 255, 0.28), transparent 30%),
+      linear-gradient(180deg, #fffaf5 0%, #fffefb 100%);
+    background-attachment: fixed;
   }
   h1,
   h2,
@@ -86,58 +92,135 @@
 }
 
 .cute-shadow {
-  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 55px rgba(242, 122, 147, 0.12);
 }
 
 .mbti-card {
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
 }
 
 .mbti-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(140, 120, 160, 0.12);
 }
 
 .team-card {
-  border-radius: var(--radius);
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
+  border-radius: 1.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  transition: all 0.25s ease;
+  backdrop-filter: blur(10px);
 }
 
 .team-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px) rotate(-0.3deg);
+  box-shadow: 0 18px 45px rgba(190, 125, 142, 0.14);
 }
 
 .team-card-1 {
-  border-color: #ffb6c1;
-  background-color: rgba(255, 182, 193, 0.1);
+  border-color: rgba(255, 182, 193, 0.8);
+  background: linear-gradient(180deg, rgba(255, 239, 243, 0.95), rgba(255, 247, 249, 0.88));
 }
 .team-card-2 {
-  border-color: #add8e6;
-  background-color: rgba(173, 216, 230, 0.1);
+  border-color: rgba(173, 216, 230, 0.8);
+  background: linear-gradient(180deg, rgba(237, 248, 253, 0.95), rgba(246, 251, 255, 0.88));
 }
 .team-card-3 {
-  border-color: #90ee90;
-  background-color: rgba(144, 238, 144, 0.1);
+  border-color: rgba(163, 224, 184, 0.8);
+  background: linear-gradient(180deg, rgba(237, 252, 243, 0.95), rgba(248, 255, 250, 0.88));
 }
 .team-card-4 {
-  border-color: #ffffe0;
-  background-color: rgba(255, 255, 224, 0.1);
+  border-color: rgba(255, 230, 166, 0.9);
+  background: linear-gradient(180deg, rgba(255, 251, 234, 0.95), rgba(255, 253, 244, 0.88));
 }
 .team-card-5 {
-  border-color: #e6e6fa;
-  background-color: rgba(230, 230, 250, 0.1);
+  border-color: rgba(212, 199, 255, 0.9);
+  background: linear-gradient(180deg, rgba(245, 241, 255, 0.95), rgba(250, 248, 255, 0.88));
 }
 .team-card-6 {
-  border-color: #fff0f5;
-  background-color: rgba(255, 240, 245, 0.1);
+  border-color: rgba(255, 209, 220, 0.9);
+  background: linear-gradient(180deg, rgba(255, 243, 247, 0.95), rgba(255, 250, 252, 0.88));
 }
 .team-card-7 {
-  border-color: #f0fff0;
-  background-color: rgba(240, 255, 240, 0.1);
+  border-color: rgba(186, 238, 223, 0.9);
+  background: linear-gradient(180deg, rgba(239, 255, 250, 0.95), rgba(248, 255, 253, 0.88));
 }
 .team-card-8 {
-  border-color: #f5f5dc;
-  background-color: rgba(245, 245, 220, 0.1);
+  border-color: rgba(229, 208, 178, 0.9);
+  background: linear-gradient(180deg, rgba(252, 246, 237, 0.95), rgba(255, 251, 245, 0.88));
+}
+
+.app-shell {
+  position: relative;
+}
+
+.hero-card {
+  background:
+    linear-gradient(135deg, rgba(255, 240, 233, 0.95), rgba(255, 249, 252, 0.95) 42%, rgba(237, 251, 248, 0.92)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.35));
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 30px 80px rgba(242, 122, 147, 0.14);
+}
+
+.soft-card {
+  box-shadow: 0 22px 60px rgba(234, 166, 180, 0.12);
+}
+
+.floating-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(8px);
+  opacity: 0.7;
+}
+
+.floating-orb-left {
+  left: -4rem;
+  top: -3rem;
+  height: 10rem;
+  width: 10rem;
+  background: rgba(255, 186, 205, 0.5);
+}
+
+.floating-orb-right {
+  right: -3rem;
+  bottom: -4rem;
+  height: 12rem;
+  width: 12rem;
+  background: rgba(187, 236, 224, 0.45);
+}
+
+.icon-bubble {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.75rem;
+  width: 2.75rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(255, 127, 156, 0.18), rgba(157, 227, 208, 0.22));
+  color: hsl(var(--foreground));
+}
+
+.icon-bubble-lg {
+  height: 4.25rem;
+  width: 4.25rem;
+}
+
+.metric-card {
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 18px 40px rgba(180, 130, 145, 0.1);
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  color: rgb(100 116 139);
+}
+
+.metric-value {
+  margin-top: 0.25rem;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: rgb(15 23 42);
 }
 
 /* Improved button and input styles */
@@ -186,4 +269,18 @@
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+@media print {
+  body {
+    background: white !important;
+  }
+
+  .hero-card,
+  .soft-card,
+  .metric-card,
+  .team-card {
+    box-shadow: none !important;
+    background: white !important;
+  }
 }

@@ -1,13 +1,39 @@
-import type { Student, Team, TeamFormationConfig, TeamFormationStrategy } from "@/types"
+import type { Student, Team, TeamFormationConfig, TeamGenerationResult } from "@/types"
 import { calculateTeamCompatibility } from "./mbti"
 import { formTeams } from "./team-formation"
 
-export async function formTeamsWithAI(students: Student[], config: TeamFormationConfig): Promise<Team[]> {
+function buildConstraintPrompt(config: TeamFormationConfig) {
+  const parts: string[] = []
+
+  if (config.constraints.spreadLeaders && config.constraints.leaderIds.length > 0) {
+    parts.push(`リーダー候補ID: ${config.constraints.leaderIds.join(", ")} をできるだけ各チームに分散してください。`)
+  }
+
+  if (config.constraints.preferredPairs.length > 0) {
+    parts.push(
+      `同じチーム希望ペア: ${config.constraints.preferredPairs.map((pair) => `${pair.firstId}-${pair.secondId}`).join(" / ")}`,
+    )
+  }
+
+  if (config.constraints.separatedPairs.length > 0) {
+    parts.push(
+      `別チーム希望ペア: ${config.constraints.separatedPairs.map((pair) => `${pair.firstId}-${pair.secondId}`).join(" / ")}`,
+    )
+  }
+
+  if (config.constraints.avoidDuplicateMbti) {
+    parts.push("同じMBTIタイプが同一チームに偏りすぎないようにしてください。")
+  }
+
+  return parts.join("\n")
+}
+
+export async function formTeamsWithAI(students: Student[], config: TeamFormationConfig): Promise<TeamGenerationResult> {
   try {
     const { numberOfTeams, strategy, purpose } = config
 
     // Prepare the prompt for the AI
-    const prompt = createAIPrompt(students, numberOfTeams, strategy, purpose)
+    const prompt = createAIPrompt(students, numberOfTeams, strategy, purpose, buildConstraintPrompt(config))
 
     // Call the Google Gemini API
     const response = await fetch("/api/gemini", {
@@ -22,7 +48,7 @@ export async function formTeamsWithAI(students: Student[], config: TeamFormation
       const errorData = await response.json()
       console.error("AI API error:", errorData)
       console.log("Falling back to local algorithm...")
-      return formTeams(students, numberOfTeams, strategy as TeamFormationStrategy)
+      return { teams: formTeams(students, config), source: "local" }
     }
 
     const data = await response.json()
@@ -35,31 +61,40 @@ export async function formTeamsWithAI(students: Student[], config: TeamFormation
       team.compatibility = calculateTeamCompatibility(team.members)
     })
 
-    return teams
+    return { teams, source: "ai" }
   } catch (error) {
     console.error("Error forming teams with AI:", error)
     console.log("Falling back to local algorithm...")
     // Fallback to the local algorithm if AI fails
-    return formTeams(students, config.numberOfTeams, config.strategy as TeamFormationStrategy)
+    return { teams: formTeams(students, config), source: "local" }
   }
 }
 
-function createAIPrompt(students: Student[], numberOfTeams: number, strategy: string, purpose?: string): string {
+function createAIPrompt(
+  students: Student[],
+  numberOfTeams: number,
+  strategy: string,
+  purpose?: string,
+  constraintPrompt?: string,
+): string {
   // Create a list of students with their MBTI types
-  const studentList = students.map((student) => `${student.name}: ${student.mbtiType} (${student.mbtiCode})`).join("\n")
+  const studentList = students
+    .map((student) => `${student.studentId} / ${student.name}: ${student.mbtiType} (${student.mbtiCode})`)
+    .join("\n")
 
   // Create the prompt
   const prompt = `
 以下の学生リストをMBTIタイプの相性を考慮して、${numberOfTeams}チームに分けてください。
 チーム分けの戦略は「${strategy}」です。
 ${purpose ? `チームの目的は「${purpose}」です。` : ""}
+${constraintPrompt ? `以下の条件も満たしてください。\n${constraintPrompt}` : ""}
 
 学生リスト:
 ${studentList}
 
 各チームのメンバーを以下の形式で出力してください:
-Team 1: [学生名1], [学生名2], ...
-Team 2: [学生名3], [学生名4], ...
+Team 1: [学生ID1], [学生ID2], ...
+Team 2: [学生ID3], [学生ID4], ...
 ...
 
 チーム分けの理由も簡単に説明してください。
@@ -80,6 +115,7 @@ function parseAIResponse(aiResponse: string, students: Student[], numberOfTeams:
   // Create a map of student names to student objects for easy lookup
   const studentMap = new Map<string, Student>()
   students.forEach((student) => {
+    studentMap.set(student.studentId, student)
     studentMap.set(student.name, student)
   })
 
