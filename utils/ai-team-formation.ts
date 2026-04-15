@@ -35,7 +35,7 @@ export async function formTeamsWithAI(students: Student[], config: TeamFormation
     // Prepare the prompt for the AI
     const prompt = createAIPrompt(students, numberOfTeams, strategy, purpose, buildConstraintPrompt(config))
 
-    // Call the Google Gemini API
+    // Call the server-side AI API route
     const response = await fetch("/api/gemini", {
       method: "POST",
       headers: {
