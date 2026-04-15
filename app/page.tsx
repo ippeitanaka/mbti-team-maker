@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import type { Student, TeamConstraintConfig, TeamFormationConfig, TeamPlan, TeamFormationStrategy } from "@/types"
 import { FileUpload } from "@/components/file-upload"
 import { StudentList } from "@/components/student-list"
@@ -88,9 +88,9 @@ export default function Home() {
     setStep("config")
   }
 
-  const handleConfigChange = (newConfig: TeamFormationConfig) => {
+  const handleConfigChange = useCallback((newConfig: TeamFormationConfig) => {
     setConfig(newConfig)
-  }
+  }, [])
 
   const handleFormTeams = async () => {
     setIsLoading(true)
