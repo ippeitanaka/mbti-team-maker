@@ -189,6 +189,9 @@ export function TeamResults({ plans, selectedPlanId, onSelectPlan, onRegenerate,
                   const team = currentPlan.teams.find((item) => item.id === activeTeam)
                   if (!team) return null
 
+                  const highlights = team.insight?.highlights ?? ["大きな懸念なく扱いやすい構成です"]
+                  const warnings = team.insight?.warnings?.length ? team.insight.warnings : ["目立った懸念はありません"]
+
                   return (
                     <>
                       <div className="grid gap-3 md:grid-cols-2">
@@ -198,7 +201,7 @@ export function TeamResults({ plans, selectedPlanId, onSelectPlan, onRegenerate,
                             <p className="text-sm font-bold">納得ポイント</p>
                           </div>
                           <ul className="space-y-2 text-sm text-emerald-900">
-                            {team.insight?.highlights.map((highlight) => <li key={highlight}>{highlight}</li>)}
+                            {highlights.map((highlight) => <li key={highlight}>{highlight}</li>)}
                           </ul>
                         </div>
                         <div className="rounded-2xl bg-amber-50 p-4">
@@ -207,7 +210,7 @@ export function TeamResults({ plans, selectedPlanId, onSelectPlan, onRegenerate,
                             <p className="text-sm font-bold">注意点</p>
                           </div>
                           <ul className="space-y-2 text-sm text-amber-900">
-                            {(team.insight?.warnings.length ? team.insight.warnings : ["目立った懸念はありません"]).map((warning) => (
+                            {warnings.map((warning) => (
                               <li key={warning}>{warning}</li>
                             ))}
                           </ul>
