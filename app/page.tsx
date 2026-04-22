@@ -20,7 +20,7 @@ const DEFAULT_CONSTRAINTS: TeamConstraintConfig = {
   preferredPairs: [],
   separatedPairs: [],
   avoidDuplicateMbti: false,
-  balanceAttendance: false,
+  balanceClasses: false,
   balanceGender: false,
 }
 
@@ -136,7 +136,7 @@ export default function Home() {
     {
       icon: Download,
       title: "1. テンプレートを用意",
-      description: "CSVテンプレートを使って学生番号・名前・MBTI・昼夜区分・性別を整理します。",
+      description: "CSVテンプレートを使って学生番号・名前・MBTI・クラス・性別を整理します。",
     },
     {
       icon: HeartHandshake,

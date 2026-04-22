@@ -28,11 +28,11 @@ export function TeamResults({ plans, selectedPlanId, onSelectPlan, onRegenerate,
 
   const handleExportCsv = () => {
     try {
-      let csvContent = "Team,Name,StudentID,MBTI Type,MBTI Group,Attendance Type,Gender\n"
+      let csvContent = "Team,Name,StudentID,MBTI Type,MBTI Group,Class,Gender\n"
 
       currentPlan.teams.forEach((team) => {
         team.members.forEach((student) => {
-          csvContent += `${team.name},${student.name},${student.studentId},${extractMBTICode(student.mbtiType)},${getMBTIGroup(student.mbtiType)},${student.attendanceType},${student.gender}\n`
+          csvContent += `${team.name},${student.name},${student.studentId},${extractMBTICode(student.mbtiType)},${getMBTIGroup(student.mbtiType)},${student.studentClass},${student.gender}\n`
         })
       })
 
@@ -173,7 +173,7 @@ export function TeamResults({ plans, selectedPlanId, onSelectPlan, onRegenerate,
                     <p>相性スコア: {team.compatibility?.toFixed(1)}/10</p>
                     <p>ユニークMBTI: {team.insight?.uniqueMbtiCount}</p>
                     <p>リーダー候補: {team.insight?.leaderCount}人</p>
-                    <p>昼夜バランス: {team.insight?.attendanceBalanceScore}</p>
+                    <p>クラスバランス: {team.insight?.classBalanceScore}</p>
                     <p>性別バランス: {team.insight?.genderBalanceScore}</p>
                   </div>
                 </CardContent>
@@ -232,7 +232,7 @@ export function TeamResults({ plans, selectedPlanId, onSelectPlan, onRegenerate,
                                         <h3 className="font-medium text-slate-900">{student.name}</h3>
                                         <p className="text-xs text-muted-foreground">{student.studentId}</p>
                                         <p className="mt-1 text-xs text-muted-foreground">
-                                          {student.attendanceType} / {student.gender}
+                                          {student.studentClass} / {student.gender}
                                         </p>
                                       </div>
                                       <div className="flex flex-col items-start sm:items-end">

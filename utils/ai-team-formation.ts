@@ -25,8 +25,8 @@ function buildConstraintPrompt(config: TeamFormationConfig) {
     parts.push("同じMBTIタイプが同一チームに偏りすぎないようにしてください。")
   }
 
-  if (config.constraints.balanceAttendance) {
-    parts.push("各チームの昼間部・夜間部の比率が全体比に近づくようにしてください。")
+  if (config.constraints.balanceClasses) {
+    parts.push("各チームのクラス比が全体比に近づくようにしてください。")
   }
 
   if (config.constraints.balanceGender) {
@@ -89,7 +89,7 @@ function createAIPrompt(
   const studentList = students
     .map(
       (student) =>
-        `${student.studentId} / ${student.name}: ${student.mbtiType} (${student.mbtiCode}), ${student.attendanceType}, ${student.gender}`,
+        `${student.studentId} / ${student.name}: ${student.mbtiType} (${student.mbtiCode}), ${student.studentClass}, ${student.gender}`,
     )
     .join("\n")
 

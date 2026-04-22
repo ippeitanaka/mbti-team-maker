@@ -153,8 +153,8 @@ function getTeamWarnings(team: Team, constraints: TeamConstraintConfig, students
     warnings.push("同じMBTIが複数名入っています")
   }
 
-  if (constraints.balanceAttendance && calculateCategoryBalanceScore(team, students, (student) => student.attendanceType) < 70) {
-    warnings.push("昼間部・夜間部の比率が全体構成からやや外れています")
+  if (constraints.balanceClasses && calculateCategoryBalanceScore(team, students, (student) => student.studentClass) < 70) {
+    warnings.push("クラス比が全体構成からやや外れています")
   }
 
   if (constraints.balanceGender && calculateCategoryBalanceScore(team, students, (student) => student.gender) < 70) {
@@ -170,7 +170,7 @@ function getTeamHighlights(team: Team, constraints: TeamConstraintConfig, studen
   const diversityScore = calculateTeamDiversityScore(team)
   const balanceScore = calculateGroupBalanceScore(team)
   const leaderCount = getTeamLeaderCount(team, constraints.leaderIds)
-  const attendanceBalanceScore = calculateCategoryBalanceScore(team, students, (student) => student.attendanceType)
+  const classBalanceScore = calculateCategoryBalanceScore(team, students, (student) => student.studentClass)
   const genderBalanceScore = calculateCategoryBalanceScore(team, students, (student) => student.gender)
 
   if (compatibility >= 7.5) {
@@ -189,8 +189,8 @@ function getTeamHighlights(team: Team, constraints: TeamConstraintConfig, studen
     highlights.push("リーダー候補が1人入り、役割が明確になりやすいです")
   }
 
-  if (constraints.balanceAttendance && attendanceBalanceScore >= 85) {
-    highlights.push("昼間部・夜間部の比率が全体構成に近く保たれています")
+  if (constraints.balanceClasses && classBalanceScore >= 85) {
+    highlights.push("クラス比が全体構成に近く保たれています")
   }
 
   if (constraints.balanceGender && genderBalanceScore >= 85) {
@@ -219,7 +219,7 @@ export function enrichTeams(teams: Team[], config: TeamFormationConfig) {
         groupBalanceScore: calculateGroupBalanceScore(team),
         uniqueMbtiCount: uniqueMbtiCount(team),
         leaderCount: getTeamLeaderCount(team, config.constraints.leaderIds),
-        attendanceBalanceScore: calculateCategoryBalanceScore(team, allStudents, (student) => student.attendanceType),
+        classBalanceScore: calculateCategoryBalanceScore(team, allStudents, (student) => student.studentClass),
         genderBalanceScore: calculateCategoryBalanceScore(team, allStudents, (student) => student.gender),
         warnings: getTeamWarnings(team, config.constraints, allStudents),
         highlights: getTeamHighlights(team, config.constraints, allStudents),
@@ -265,10 +265,10 @@ function getConstraintSummary(teams: Team[], constraints: TeamConstraintConfig) 
     }
   }
 
-  if (constraints.balanceAttendance) {
+  if (constraints.balanceClasses) {
     details.total += 1
 
-    if (isCategoryBalanceSatisfied(teams, (student) => student.attendanceType)) {
+    if (isCategoryBalanceSatisfied(teams, (student) => student.studentClass)) {
       details.satisfied += 1
     }
   }
@@ -327,8 +327,8 @@ function createOverviewNotes(teams: Team[], config: TeamFormationConfig, average
     notes.push("指定した組み合わせ条件を考慮した編成です")
   }
 
-  if (config.constraints.balanceAttendance) {
-    notes.push("昼間部・夜間部の比率も加味してあります")
+  if (config.constraints.balanceClasses) {
+    notes.push("クラス比も加味してあります")
   }
 
   if (config.constraints.balanceGender) {
@@ -406,8 +406,8 @@ export function countConstraintPenalty(teams: Team[], config: TeamFormationConfi
     penalty += teams.reduce((total, team) => total + countMbtiDuplicates(team) * 6, 0)
   }
 
-  if (config.constraints.balanceAttendance) {
-    penalty += countCategoryDistributionPenalty(teams, (student) => student.attendanceType, 5)
+  if (config.constraints.balanceClasses) {
+    penalty += countCategoryDistributionPenalty(teams, (student) => student.studentClass, 5)
   }
 
   if (config.constraints.balanceGender) {

@@ -50,7 +50,7 @@ export function TeamConfig({ students, initialConfig, onConfigChange, onFormTeam
   const [spreadLeaders, setSpreadLeaders] = useState(initialConfig.constraints.spreadLeaders)
   const [leaderIdsText, setLeaderIdsText] = useState(initialConfig.constraints.leaderIds.join(", "))
   const [avoidDuplicateMbti, setAvoidDuplicateMbti] = useState(initialConfig.constraints.avoidDuplicateMbti)
-  const [balanceAttendance, setBalanceAttendance] = useState(initialConfig.constraints.balanceAttendance)
+  const [balanceClasses, setBalanceClasses] = useState(initialConfig.constraints.balanceClasses)
   const [balanceGender, setBalanceGender] = useState(initialConfig.constraints.balanceGender)
   const [preferredPairsText, setPreferredPairsText] = useState(
     initialConfig.constraints.preferredPairs.map((pair) => `${pair.firstId},${pair.secondId}`).join("\n"),
@@ -67,14 +67,14 @@ export function TeamConfig({ students, initialConfig, onConfigChange, onFormTeam
   const invalidPairs = [...preferredPairs, ...separatedPairs].filter(
     (pair) => !availableIds.has(pair.firstId) || !availableIds.has(pair.secondId),
   )
-  const attendanceSummary = useMemo(() => {
+  const classSummary = useMemo(() => {
     const counts = new Map<string, number>()
 
     students.forEach((student) => {
-      counts.set(student.attendanceType, (counts.get(student.attendanceType) || 0) + 1)
+      counts.set(student.studentClass, (counts.get(student.studentClass) || 0) + 1)
     })
 
-    return [...counts.entries()]
+    return [...counts.entries()].sort((a, b) => b[1] - a[1])
   }, [students])
   const genderSummary = useMemo(() => {
     const counts = new Map<string, number>()
@@ -97,7 +97,7 @@ export function TeamConfig({ students, initialConfig, onConfigChange, onFormTeam
         preferredPairs,
         separatedPairs,
         avoidDuplicateMbti,
-        balanceAttendance,
+        balanceClasses,
         balanceGender,
       },
     })
@@ -110,7 +110,7 @@ export function TeamConfig({ students, initialConfig, onConfigChange, onFormTeam
     preferredPairs,
     separatedPairs,
     avoidDuplicateMbti,
-    balanceAttendance,
+    balanceClasses,
     balanceGender,
     onConfigChange,
   ])
@@ -262,12 +262,12 @@ export function TeamConfig({ students, initialConfig, onConfigChange, onFormTeam
 
               <div className="flex items-start justify-between gap-4 rounded-xl bg-background/70 p-3">
                 <div>
-                  <Label htmlFor="balanceAttendance" className="text-sm font-medium">
-                    昼間部・夜間部の比率をそろえる
+                  <Label htmlFor="balanceClasses" className="text-sm font-medium">
+                    クラス比をそろえる
                   </Label>
-                  <p className="mt-1 text-xs text-muted-foreground">各チームの昼夜構成が全体比に近づくように調整します。</p>
+                  <p className="mt-1 text-xs text-muted-foreground">各チームのクラス構成が全体比に近づくように調整します。</p>
                 </div>
-                <Switch id="balanceAttendance" checked={balanceAttendance} onCheckedChange={setBalanceAttendance} />
+                <Switch id="balanceClasses" checked={balanceClasses} onCheckedChange={setBalanceClasses} />
               </div>
 
               <div className="flex items-start justify-between gap-4 rounded-xl bg-background/70 p-3">
@@ -320,9 +320,9 @@ export function TeamConfig({ students, initialConfig, onConfigChange, onFormTeam
                 </div>
                 <div className="mt-3 space-y-2">
                   <div>
-                    <p className="text-xs font-medium text-slate-700">昼夜区分の内訳</p>
+                    <p className="text-xs font-medium text-slate-700">クラスの内訳</p>
                     <div className="mt-1 flex flex-wrap gap-2">
-                      {attendanceSummary.map(([label, count]) => (
+                      {classSummary.map(([label, count]) => (
                         <Badge key={label} variant="outline" className="rounded-full bg-white/80">
                           {label}: {count}人
                         </Badge>

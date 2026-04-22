@@ -29,7 +29,7 @@ export function StudentList({ students }: StudentListProps) {
                     <h3 className="font-medium">{student.name}</h3>
                     <p className="text-xs text-muted-foreground">{student.studentId}</p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {student.attendanceType} / {student.gender}
+                      {student.studentClass} / {student.gender}
                     </p>
                   </div>
                   <div className="flex flex-col items-start sm:items-end">

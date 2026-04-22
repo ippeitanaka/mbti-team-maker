@@ -1,18 +1,7 @@
-import type { AttendanceType, CSVValidationIssue, Student } from "@/types"
+import type { CSVValidationIssue, Student } from "@/types"
 import { extractMBTICode } from "./mbti"
 
-const REQUIRED_HEADERS = ["studentId", "name", "mbtiType", "attendanceType", "gender"]
-
-const ATTENDANCE_TYPE_ALIASES: Record<string, AttendanceType> = {
-  "day": "昼間部",
-  "night": "夜間部",
-  "昼": "昼間部",
-  "昼間": "昼間部",
-  "昼間部": "昼間部",
-  "夜": "夜間部",
-  "夜間": "夜間部",
-  "夜間部": "夜間部",
-}
+const REQUIRED_HEADERS = ["studentId", "name", "mbtiType", "class", "gender"]
 
 const GENDER_ALIASES: Record<string, string> = {
   male: "男性",
@@ -47,10 +36,6 @@ export class CSVValidationError extends Error {
 
 function splitCSVLine(line: string) {
   return line.split(",").map((value) => value.trim().replace(/^"|"$/g, ""))
-}
-
-function normalizeAttendanceType(value: string) {
-  return ATTENDANCE_TYPE_ALIASES[value.trim().toLowerCase()]
 }
 
 function normalizeGender(value: string) {
@@ -104,16 +89,16 @@ function validateCSV(csvData: string) {
       issues.push({
         row: rowNumber,
         field: "row",
-        message: "列数が不足しています。studentId,name,mbtiType,attendanceType,gender を入力してください。",
+        message: "列数が不足しています。studentId,name,mbtiType,class,gender を入力してください。",
         severity: "error",
       })
       continue
     }
 
-    const [studentId, name, mbtiTypeRaw, attendanceTypeRaw, genderRaw] = values
+    const [studentId, name, mbtiTypeRaw, studentClassRaw, genderRaw] = values
     const mbtiType = mbtiTypeRaw.toUpperCase()
     const mbtiCode = extractMBTICode(mbtiType)
-    const attendanceType = normalizeAttendanceType(attendanceTypeRaw)
+    const studentClass = studentClassRaw.trim()
     const gender = normalizeGender(genderRaw)
 
     if (!studentId) {
@@ -133,11 +118,11 @@ function validateCSV(csvData: string) {
       })
     }
 
-    if (!attendanceType) {
+    if (!studentClass) {
       issues.push({
         row: rowNumber,
-        field: "attendanceType",
-        message: "昼間部 または 夜間部 を入力してください。",
+        field: "class",
+        message: "クラスを入力してください。",
         severity: "error",
       })
     }
@@ -160,14 +145,14 @@ function validateCSV(csvData: string) {
       })
     }
 
-    if (studentId && !seenIds.has(studentId) && name && mbtiCode !== "XXXX" && attendanceType && gender) {
+    if (studentId && !seenIds.has(studentId) && name && mbtiCode !== "XXXX" && studentClass && gender) {
       seenIds.add(studentId)
       students.push({
         studentId,
         name,
         mbtiType,
         mbtiCode,
-        attendanceType,
+        studentClass,
         gender,
       })
     }
