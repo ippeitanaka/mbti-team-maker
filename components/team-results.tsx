@@ -28,11 +28,11 @@ export function TeamResults({ plans, selectedPlanId, onSelectPlan, onRegenerate,
 
   const handleExportCsv = () => {
     try {
-      let csvContent = "Team,Name,StudentID,MBTI Type,MBTI Group\n"
+      let csvContent = "Team,Name,StudentID,MBTI Type,MBTI Group,Attendance Type,Gender\n"
 
       currentPlan.teams.forEach((team) => {
         team.members.forEach((student) => {
-          csvContent += `${team.name},${student.name},${student.studentId},${extractMBTICode(student.mbtiType)},${getMBTIGroup(student.mbtiType)}\n`
+          csvContent += `${team.name},${student.name},${student.studentId},${extractMBTICode(student.mbtiType)},${getMBTIGroup(student.mbtiType)},${student.attendanceType},${student.gender}\n`
         })
       })
 
@@ -173,6 +173,8 @@ export function TeamResults({ plans, selectedPlanId, onSelectPlan, onRegenerate,
                     <p>相性スコア: {team.compatibility?.toFixed(1)}/10</p>
                     <p>ユニークMBTI: {team.insight?.uniqueMbtiCount}</p>
                     <p>リーダー候補: {team.insight?.leaderCount}人</p>
+                    <p>昼夜バランス: {team.insight?.attendanceBalanceScore}</p>
+                    <p>性別バランス: {team.insight?.genderBalanceScore}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -229,6 +231,9 @@ export function TeamResults({ plans, selectedPlanId, onSelectPlan, onRegenerate,
                                       <div className="text-wrap-anywhere">
                                         <h3 className="font-medium text-slate-900">{student.name}</h3>
                                         <p className="text-xs text-muted-foreground">{student.studentId}</p>
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                          {student.attendanceType} / {student.gender}
+                                        </p>
                                       </div>
                                       <div className="flex flex-col items-start sm:items-end">
                                         <span className="text-sm font-medium">{extractMBTICode(student.mbtiType)}</span>

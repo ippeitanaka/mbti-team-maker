@@ -50,6 +50,8 @@ export function TeamConfig({ students, initialConfig, onConfigChange, onFormTeam
   const [spreadLeaders, setSpreadLeaders] = useState(initialConfig.constraints.spreadLeaders)
   const [leaderIdsText, setLeaderIdsText] = useState(initialConfig.constraints.leaderIds.join(", "))
   const [avoidDuplicateMbti, setAvoidDuplicateMbti] = useState(initialConfig.constraints.avoidDuplicateMbti)
+  const [balanceAttendance, setBalanceAttendance] = useState(initialConfig.constraints.balanceAttendance)
+  const [balanceGender, setBalanceGender] = useState(initialConfig.constraints.balanceGender)
   const [preferredPairsText, setPreferredPairsText] = useState(
     initialConfig.constraints.preferredPairs.map((pair) => `${pair.firstId},${pair.secondId}`).join("\n"),
   )
@@ -65,6 +67,24 @@ export function TeamConfig({ students, initialConfig, onConfigChange, onFormTeam
   const invalidPairs = [...preferredPairs, ...separatedPairs].filter(
     (pair) => !availableIds.has(pair.firstId) || !availableIds.has(pair.secondId),
   )
+  const attendanceSummary = useMemo(() => {
+    const counts = new Map<string, number>()
+
+    students.forEach((student) => {
+      counts.set(student.attendanceType, (counts.get(student.attendanceType) || 0) + 1)
+    })
+
+    return [...counts.entries()]
+  }, [students])
+  const genderSummary = useMemo(() => {
+    const counts = new Map<string, number>()
+
+    students.forEach((student) => {
+      counts.set(student.gender, (counts.get(student.gender) || 0) + 1)
+    })
+
+    return [...counts.entries()].sort((a, b) => b[1] - a[1])
+  }, [students])
 
   useEffect(() => {
     onConfigChange({
@@ -77,9 +97,23 @@ export function TeamConfig({ students, initialConfig, onConfigChange, onFormTeam
         preferredPairs,
         separatedPairs,
         avoidDuplicateMbti,
+        balanceAttendance,
+        balanceGender,
       },
     })
-  }, [numberOfTeams, strategy, purpose, spreadLeaders, leaderIds, preferredPairs, separatedPairs, avoidDuplicateMbti, onConfigChange])
+  }, [
+    numberOfTeams,
+    strategy,
+    purpose,
+    spreadLeaders,
+    leaderIds,
+    preferredPairs,
+    separatedPairs,
+    avoidDuplicateMbti,
+    balanceAttendance,
+    balanceGender,
+    onConfigChange,
+  ])
 
   const handleNumberOfTeamsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number.parseInt(e.target.value, 10)
@@ -226,6 +260,26 @@ export function TeamConfig({ students, initialConfig, onConfigChange, onFormTeam
                 <Switch id="avoidDuplicateMbti" checked={avoidDuplicateMbti} onCheckedChange={setAvoidDuplicateMbti} />
               </div>
 
+              <div className="flex items-start justify-between gap-4 rounded-xl bg-background/70 p-3">
+                <div>
+                  <Label htmlFor="balanceAttendance" className="text-sm font-medium">
+                    昼間部・夜間部の比率をそろえる
+                  </Label>
+                  <p className="mt-1 text-xs text-muted-foreground">各チームの昼夜構成が全体比に近づくように調整します。</p>
+                </div>
+                <Switch id="balanceAttendance" checked={balanceAttendance} onCheckedChange={setBalanceAttendance} />
+              </div>
+
+              <div className="flex items-start justify-between gap-4 rounded-xl bg-background/70 p-3">
+                <div>
+                  <Label htmlFor="balanceGender" className="text-sm font-medium">
+                    性別比をそろえる
+                  </Label>
+                  <p className="mt-1 text-xs text-muted-foreground">各チームの性別構成が全体比に近づくように調整します。</p>
+                </div>
+                <Switch id="balanceGender" checked={balanceGender} onCheckedChange={setBalanceGender} />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="preferredPairs" className="text-sm font-medium">
                   同じチーム希望ペア
@@ -263,6 +317,28 @@ export function TeamConfig({ students, initialConfig, onConfigChange, onFormTeam
                     </Badge>
                   ))}
                   {students.length > 10 ? <Badge variant="outline">+{students.length - 10}</Badge> : null}
+                </div>
+                <div className="mt-3 space-y-2">
+                  <div>
+                    <p className="text-xs font-medium text-slate-700">昼夜区分の内訳</p>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {attendanceSummary.map(([label, count]) => (
+                        <Badge key={label} variant="outline" className="rounded-full bg-white/80">
+                          {label}: {count}人
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-slate-700">性別の内訳</p>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {genderSummary.map(([label, count]) => (
+                        <Badge key={label} variant="outline" className="rounded-full bg-white/80">
+                          {label}: {count}人
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
 

@@ -63,7 +63,7 @@ export function FileUpload({ onStudentsLoaded, templateCsvUrl }: FileUploadProps
           <div className="w-full rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-4 text-left">
             <p className="text-sm font-medium">テンプレートCSVをダウンロード</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              1行目は studentId,name,mbtiType の順で入力してください。
+              1行目は studentId,name,mbtiType,attendanceType,gender の順で入力してください。
             </p>
             <Button asChild variant="secondary" className="mt-3 w-full sm:w-auto">
               <a href={templateCsvUrl} download>

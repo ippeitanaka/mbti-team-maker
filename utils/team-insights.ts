@@ -40,6 +40,60 @@ function getTeamLeaderCount(team: Team, leaderIds: string[]) {
   return team.members.filter((student) => leaderIds.includes(student.studentId)).length
 }
 
+function getAllStudentsFromTeams(teams: Team[]) {
+  return teams.flatMap((team) => team.members)
+}
+
+function getCategoryDistribution(students: Student[], getCategory: (student: Student) => string) {
+  const counts = new Map<string, number>()
+
+  students.forEach((student) => {
+    const category = getCategory(student)
+    counts.set(category, (counts.get(category) || 0) + 1)
+  })
+
+  return counts
+}
+
+function getCategoryDeviationForTeam(team: Team, students: Student[], getCategory: (student: Student) => string) {
+  if (!team.members.length || !students.length) {
+    return 0
+  }
+
+  const totalStudents = students.length
+  const overallDistribution = getCategoryDistribution(students, getCategory)
+  const teamDistribution = getCategoryDistribution(team.members, getCategory)
+
+  return [...overallDistribution.entries()].reduce((total, [category, count]) => {
+    const expected = (team.members.length * count) / totalStudents
+    const actual = teamDistribution.get(category) || 0
+    return total + Math.abs(actual - expected)
+  }, 0)
+}
+
+function calculateCategoryBalanceScore(team: Team, students: Student[], getCategory: (student: Student) => string) {
+  if (team.members.length <= 1) {
+    return 100
+  }
+
+  const deviation = getCategoryDeviationForTeam(team, students, getCategory)
+  return round(Math.max(0, 100 - (deviation / team.members.length) * 100))
+}
+
+function countCategoryDistributionPenalty(teams: Team[], getCategory: (student: Student) => string, weight: number) {
+  const allStudents = getAllStudentsFromTeams(teams)
+
+  return round(
+    teams.reduce((total, team) => total + getCategoryDeviationForTeam(team, allStudents, getCategory) * weight, 0),
+  )
+}
+
+function isCategoryBalanceSatisfied(teams: Team[], getCategory: (student: Student) => string) {
+  const allStudents = getAllStudentsFromTeams(teams)
+
+  return teams.every((team) => getCategoryDeviationForTeam(team, allStudents, getCategory) <= 1)
+}
+
 export function calculateTeamDiversityScore(team: Team) {
   if (team.members.length <= 1) {
     return 100
@@ -78,7 +132,7 @@ function countMbtiDuplicates(team: Team) {
   return [...counts.values()].reduce((total, count) => total + Math.max(0, count - 1), 0)
 }
 
-function getTeamWarnings(team: Team, constraints: TeamConstraintConfig) {
+function getTeamWarnings(team: Team, constraints: TeamConstraintConfig, students: Student[]) {
   const warnings: string[] = []
   const compatibility = calculateTeamCompatibility(team.members)
   const diversityScore = calculateTeamDiversityScore(team)
@@ -99,15 +153,25 @@ function getTeamWarnings(team: Team, constraints: TeamConstraintConfig) {
     warnings.push("同じMBTIが複数名入っています")
   }
 
+  if (constraints.balanceAttendance && calculateCategoryBalanceScore(team, students, (student) => student.attendanceType) < 70) {
+    warnings.push("昼間部・夜間部の比率が全体構成からやや外れています")
+  }
+
+  if (constraints.balanceGender && calculateCategoryBalanceScore(team, students, (student) => student.gender) < 70) {
+    warnings.push("性別比が全体構成からやや外れています")
+  }
+
   return warnings
 }
 
-function getTeamHighlights(team: Team, constraints: TeamConstraintConfig) {
+function getTeamHighlights(team: Team, constraints: TeamConstraintConfig, students: Student[]) {
   const highlights: string[] = []
   const compatibility = calculateTeamCompatibility(team.members)
   const diversityScore = calculateTeamDiversityScore(team)
   const balanceScore = calculateGroupBalanceScore(team)
   const leaderCount = getTeamLeaderCount(team, constraints.leaderIds)
+  const attendanceBalanceScore = calculateCategoryBalanceScore(team, students, (student) => student.attendanceType)
+  const genderBalanceScore = calculateCategoryBalanceScore(team, students, (student) => student.gender)
 
   if (compatibility >= 7.5) {
     highlights.push("相性の良い組み合わせが多いチームです")
@@ -125,6 +189,14 @@ function getTeamHighlights(team: Team, constraints: TeamConstraintConfig) {
     highlights.push("リーダー候補が1人入り、役割が明確になりやすいです")
   }
 
+  if (constraints.balanceAttendance && attendanceBalanceScore >= 85) {
+    highlights.push("昼間部・夜間部の比率が全体構成に近く保たれています")
+  }
+
+  if (constraints.balanceGender && genderBalanceScore >= 85) {
+    highlights.push("性別比が全体構成に近く、偏りが抑えられています")
+  }
+
   if (!highlights.length) {
     highlights.push("大きな偏りがなく、扱いやすいチーム構成です")
   }
@@ -133,6 +205,8 @@ function getTeamHighlights(team: Team, constraints: TeamConstraintConfig) {
 }
 
 export function enrichTeams(teams: Team[], config: TeamFormationConfig) {
+  const allStudents = getAllStudentsFromTeams(teams)
+
   return teams.map((team) => {
     const compatibility = round(calculateTeamCompatibility(team.members))
 
@@ -145,8 +219,10 @@ export function enrichTeams(teams: Team[], config: TeamFormationConfig) {
         groupBalanceScore: calculateGroupBalanceScore(team),
         uniqueMbtiCount: uniqueMbtiCount(team),
         leaderCount: getTeamLeaderCount(team, config.constraints.leaderIds),
-        warnings: getTeamWarnings(team, config.constraints),
-        highlights: getTeamHighlights(team, config.constraints),
+        attendanceBalanceScore: calculateCategoryBalanceScore(team, allStudents, (student) => student.attendanceType),
+        genderBalanceScore: calculateCategoryBalanceScore(team, allStudents, (student) => student.gender),
+        warnings: getTeamWarnings(team, config.constraints, allStudents),
+        highlights: getTeamHighlights(team, config.constraints, allStudents),
       },
     }
   })
@@ -185,6 +261,22 @@ function getConstraintSummary(teams: Team[], constraints: TeamConstraintConfig) 
     const duplicateCount = teams.reduce((total, team) => total + countMbtiDuplicates(team), 0)
 
     if (duplicateCount === 0) {
+      details.satisfied += 1
+    }
+  }
+
+  if (constraints.balanceAttendance) {
+    details.total += 1
+
+    if (isCategoryBalanceSatisfied(teams, (student) => student.attendanceType)) {
+      details.satisfied += 1
+    }
+  }
+
+  if (constraints.balanceGender) {
+    details.total += 1
+
+    if (isCategoryBalanceSatisfied(teams, (student) => student.gender)) {
       details.satisfied += 1
     }
   }
@@ -233,6 +325,14 @@ function createOverviewNotes(teams: Team[], config: TeamFormationConfig, average
 
   if (config.constraints.preferredPairs.length || config.constraints.separatedPairs.length) {
     notes.push("指定した組み合わせ条件を考慮した編成です")
+  }
+
+  if (config.constraints.balanceAttendance) {
+    notes.push("昼間部・夜間部の比率も加味してあります")
+  }
+
+  if (config.constraints.balanceGender) {
+    notes.push("性別比の偏りも抑える方向で調整しています")
   }
 
   return notes.slice(0, 3)
@@ -304,6 +404,14 @@ export function countConstraintPenalty(teams: Team[], config: TeamFormationConfi
 
   if (config.constraints.avoidDuplicateMbti) {
     penalty += teams.reduce((total, team) => total + countMbtiDuplicates(team) * 6, 0)
+  }
+
+  if (config.constraints.balanceAttendance) {
+    penalty += countCategoryDistributionPenalty(teams, (student) => student.attendanceType, 5)
+  }
+
+  if (config.constraints.balanceGender) {
+    penalty += countCategoryDistributionPenalty(teams, (student) => student.gender, 5)
   }
 
   config.constraints.preferredPairs.forEach((pair) => {

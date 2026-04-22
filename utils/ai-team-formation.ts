@@ -25,6 +25,14 @@ function buildConstraintPrompt(config: TeamFormationConfig) {
     parts.push("同じMBTIタイプが同一チームに偏りすぎないようにしてください。")
   }
 
+  if (config.constraints.balanceAttendance) {
+    parts.push("各チームの昼間部・夜間部の比率が全体比に近づくようにしてください。")
+  }
+
+  if (config.constraints.balanceGender) {
+    parts.push("各チームの性別比が全体比に近づくようにしてください。")
+  }
+
   return parts.join("\n")
 }
 
@@ -79,7 +87,10 @@ function createAIPrompt(
 ): string {
   // Create a list of students with their MBTI types
   const studentList = students
-    .map((student) => `${student.studentId} / ${student.name}: ${student.mbtiType} (${student.mbtiCode})`)
+    .map(
+      (student) =>
+        `${student.studentId} / ${student.name}: ${student.mbtiType} (${student.mbtiCode}), ${student.attendanceType}, ${student.gender}`,
+    )
     .join("\n")
 
   // Create the prompt

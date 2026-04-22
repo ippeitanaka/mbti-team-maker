@@ -28,6 +28,9 @@ export function StudentList({ students }: StudentListProps) {
                   <div className="text-wrap-anywhere">
                     <h3 className="font-medium">{student.name}</h3>
                     <p className="text-xs text-muted-foreground">{student.studentId}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {student.attendanceType} / {student.gender}
+                    </p>
                   </div>
                   <div className="flex flex-col items-start sm:items-end">
                     <span className="text-sm font-medium">{extractMBTICode(student.mbtiType)}</span>

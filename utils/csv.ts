@@ -1,7 +1,39 @@
-import type { CSVValidationIssue, Student } from "@/types"
+import type { AttendanceType, CSVValidationIssue, Student } from "@/types"
 import { extractMBTICode } from "./mbti"
 
-const REQUIRED_HEADERS = ["studentId", "name", "mbtiType"]
+const REQUIRED_HEADERS = ["studentId", "name", "mbtiType", "attendanceType", "gender"]
+
+const ATTENDANCE_TYPE_ALIASES: Record<string, AttendanceType> = {
+  "day": "昼間部",
+  "night": "夜間部",
+  "昼": "昼間部",
+  "昼間": "昼間部",
+  "昼間部": "昼間部",
+  "夜": "夜間部",
+  "夜間": "夜間部",
+  "夜間部": "夜間部",
+}
+
+const GENDER_ALIASES: Record<string, string> = {
+  male: "男性",
+  man: "男性",
+  m: "男性",
+  男: "男性",
+  男性: "男性",
+  female: "女性",
+  woman: "女性",
+  f: "女性",
+  女: "女性",
+  女性: "女性",
+  other: "その他",
+  nonbinary: "その他",
+  "non-binary": "その他",
+  x: "その他",
+  その他: "その他",
+  unknown: "未回答",
+  unanswered: "未回答",
+  未回答: "未回答",
+}
 
 export class CSVValidationError extends Error {
   issues: CSVValidationIssue[]
@@ -15,6 +47,19 @@ export class CSVValidationError extends Error {
 
 function splitCSVLine(line: string) {
   return line.split(",").map((value) => value.trim().replace(/^"|"$/g, ""))
+}
+
+function normalizeAttendanceType(value: string) {
+  return ATTENDANCE_TYPE_ALIASES[value.trim().toLowerCase()]
+}
+
+function normalizeGender(value: string) {
+  const normalized = value.trim()
+  if (!normalized) {
+    return ""
+  }
+
+  return GENDER_ALIASES[normalized.toLowerCase()] || normalized
 }
 
 function validateCSV(csvData: string) {
@@ -55,19 +100,21 @@ function validateCSV(csvData: string) {
     const values = splitCSVLine(lines[index])
     const rowNumber = index + 1
 
-    if (values.length < 3) {
+    if (values.length < REQUIRED_HEADERS.length) {
       issues.push({
         row: rowNumber,
         field: "row",
-        message: "列数が不足しています。studentId,name,mbtiType を入力してください。",
+        message: "列数が不足しています。studentId,name,mbtiType,attendanceType,gender を入力してください。",
         severity: "error",
       })
       continue
     }
 
-    const [studentId, name, mbtiTypeRaw] = values
+    const [studentId, name, mbtiTypeRaw, attendanceTypeRaw, genderRaw] = values
     const mbtiType = mbtiTypeRaw.toUpperCase()
     const mbtiCode = extractMBTICode(mbtiType)
+    const attendanceType = normalizeAttendanceType(attendanceTypeRaw)
+    const gender = normalizeGender(genderRaw)
 
     if (!studentId) {
       issues.push({ row: rowNumber, field: "studentId", message: "学籍番号が空です。", severity: "error" })
@@ -86,6 +133,24 @@ function validateCSV(csvData: string) {
       })
     }
 
+    if (!attendanceType) {
+      issues.push({
+        row: rowNumber,
+        field: "attendanceType",
+        message: "昼間部 または 夜間部 を入力してください。",
+        severity: "error",
+      })
+    }
+
+    if (!gender) {
+      issues.push({
+        row: rowNumber,
+        field: "gender",
+        message: "性別が空です。",
+        severity: "error",
+      })
+    }
+
     if (studentId && seenIds.has(studentId)) {
       issues.push({
         row: rowNumber,
@@ -95,13 +160,15 @@ function validateCSV(csvData: string) {
       })
     }
 
-    if (studentId && !seenIds.has(studentId) && name && mbtiCode !== "XXXX") {
+    if (studentId && !seenIds.has(studentId) && name && mbtiCode !== "XXXX" && attendanceType && gender) {
       seenIds.add(studentId)
       students.push({
         studentId,
         name,
         mbtiType,
         mbtiCode,
+        attendanceType,
+        gender,
       })
     }
   }

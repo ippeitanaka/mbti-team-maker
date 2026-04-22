@@ -1,8 +1,12 @@
+export type AttendanceType = "昼間部" | "夜間部"
+
 export interface Student {
   studentId: string
   name: string
   mbtiType: string
   mbtiCode?: string
+  attendanceType: AttendanceType
+  gender: string
 }
 
 export interface PairConstraint {
@@ -16,6 +20,8 @@ export interface TeamConstraintConfig {
   preferredPairs: PairConstraint[]
   separatedPairs: PairConstraint[]
   avoidDuplicateMbti: boolean
+  balanceAttendance: boolean
+  balanceGender: boolean
 }
 
 export interface TeamInsight {
@@ -24,6 +30,8 @@ export interface TeamInsight {
   groupBalanceScore: number
   uniqueMbtiCount: number
   leaderCount: number
+  attendanceBalanceScore: number
+  genderBalanceScore: number
   warnings: string[]
   highlights: string[]
 }
